@@ -1,4 +1,4 @@
-"""ASGI entrypoint."""
+"""ASGI entrypoint for uvicorn."""
 
 from src.interface.http.app import create_app
 
