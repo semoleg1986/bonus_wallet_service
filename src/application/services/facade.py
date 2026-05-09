@@ -9,11 +9,13 @@ from src.application.dto import (
     AccrualView,
     AccrueBonusCommand,
     BalanceView,
+    BonusLedgerEntryView,
     BonusRuleView,
     CommitRedeemCommand,
     CreateBonusRuleCommand,
     DeactivateBonusRuleCommand,
     GetBalanceQuery,
+    ListBonusLedgerQuery,
     ListBonusRulesQuery,
     RedeemQuoteQuery,
     RedeemQuoteView,
@@ -122,6 +124,13 @@ class BonusWalletFacade:
         with self.uow_factory() as uow:
             rules = uow.rules.list(active_only=query.active_only)
         return [self._to_rule_view(rule) for rule in rules]
+
+    def list_ledger(self, query: ListBonusLedgerQuery) -> list[BonusLedgerEntryView]:
+        """Return ledger history for a parent."""
+
+        with self.uow_factory() as uow:
+            entries = uow.ledger.list_by_parent(parent_id=query.parent_id)
+        return [self._to_ledger_view(entry) for entry in entries]
 
     def commit_redeem(self, command: CommitRedeemCommand) -> RedemptionView:
         """Consume balance for a payment in a replay-safe way."""
@@ -259,6 +268,19 @@ class BonusWalletFacade:
             threshold=rule.threshold,
             points=rule.points,
             is_active=rule.is_active,
+        )
+
+    @staticmethod
+    def _to_ledger_view(entry: BonusLedgerEntry) -> BonusLedgerEntryView:
+        return BonusLedgerEntryView(
+            entry_id=entry.entry_id,
+            parent_id=entry.parent_id,
+            operation=entry.operation.value,
+            delta=entry.delta,
+            balance_after=entry.balance_after,
+            reason_code=entry.reason_code,
+            reference_id=entry.reference_id,
+            idempotency_key=entry.idempotency_key,
         )
 
     @staticmethod

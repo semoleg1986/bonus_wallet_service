@@ -60,6 +60,15 @@ class SqlAlchemyBonusLedgerRepository:
         model = self._session.execute(stmt).scalar_one_or_none()
         return self._to_entity(model)
 
+    def list_by_parent(self, *, parent_id: str) -> list[BonusLedgerEntry]:
+        stmt = (
+            select(BonusLedgerEntryModel)
+            .where(BonusLedgerEntryModel.parent_id == parent_id)
+            .order_by(BonusLedgerEntryModel.created_at.desc())
+        )
+        models = self._session.execute(stmt).scalars().all()
+        return [self._to_entity(model) for model in models if model is not None]
+
     @staticmethod
     def _to_entity(model: BonusLedgerEntryModel | None) -> BonusLedgerEntry | None:
         if model is None:

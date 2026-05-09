@@ -91,3 +91,14 @@ class BonusRuleResponse(BaseModel):
     threshold: int = Field(gt=0)
     points: int = Field(gt=0)
     is_active: bool
+
+
+class BonusLedgerEntryResponse(BaseModel):
+    entry_id: str
+    parent_id: str
+    operation: str
+    delta: int
+    balance_after: int = Field(ge=0)
+    reason_code: str
+    reference_id: str | None = None
+    idempotency_key: str | None = None

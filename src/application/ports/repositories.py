@@ -42,6 +42,9 @@ class BonusLedgerRepositoryPort(Protocol):
     ) -> BonusLedgerEntry | None:
         """Return entry by external business reference."""
 
+    def list_by_parent(self, *, parent_id: str) -> list[BonusLedgerEntry]:
+        """Return ledger entries for a parent in reverse chronological order."""
+
 
 class BonusRuleRepositoryPort(Protocol):
     """Storage access for accrual rules."""

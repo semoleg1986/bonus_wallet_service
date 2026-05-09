@@ -153,3 +153,41 @@ def test_rule_lifecycle_create_list_and_deactivate() -> None:
     )
     assert active_list_response.status_code == 200
     assert active_list_response.json() == []
+
+
+def test_ledger_endpoint_returns_reverse_chronological_entries() -> None:
+    client = _client()
+    headers = {"X-Service-Token": SERVICE_TOKEN}
+
+    client.post(
+        "/internal/v1/bonus/accruals",
+        headers=headers,
+        json={
+            "parent_id": "parent-ledger-1",
+            "amount": 100,
+            "reason_code": "lesson_completion_reward",
+            "reference_id": "lesson-1",
+            "idempotency_key": "ledger-accrue-1",
+        },
+    )
+    client.post(
+        "/internal/v1/bonus/redemptions/commit",
+        headers=headers,
+        json={
+            "parent_id": "parent-ledger-1",
+            "amount": 30,
+            "payment_intent_id": "pi-ledger-1",
+            "idempotency_key": "ledger-commit-1",
+        },
+    )
+
+    ledger_response = client.get(
+        "/internal/v1/bonus/ledger/parent-ledger-1",
+        headers=headers,
+    )
+
+    assert ledger_response.status_code == 200
+    payload = ledger_response.json()
+    assert len(payload) == 2
+    assert payload[0]["operation"] == "redeem_commit"
+    assert payload[1]["operation"] == "accrual"

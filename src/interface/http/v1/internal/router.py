@@ -12,6 +12,7 @@ from src.application.dto import (
     CreateBonusRuleCommand,
     DeactivateBonusRuleCommand,
     GetBalanceQuery,
+    ListBonusLedgerQuery,
     ListBonusRulesQuery,
     RedeemQuoteQuery,
     RevertRedeemCommand,
@@ -21,6 +22,7 @@ from src.interface.http.v1.internal.schemas import (
     AccrualRequest,
     AccrualResponse,
     BalanceResponse,
+    BonusLedgerEntryResponse,
     BonusRuleCreateRequest,
     BonusRuleResponse,
     RedeemCommitRequest,
@@ -45,6 +47,18 @@ def get_balance(
 
     result = facade.get_balance(GetBalanceQuery(parent_id=parent_id))
     return BalanceResponse(parent_id=result.parent_id, balance=result.balance)
+
+
+@router.get("/ledger/{parent_id}", response_model=list[BonusLedgerEntryResponse])
+def list_ledger(
+    parent_id: str,
+    _=Depends(require_service_token),
+    facade=Depends(get_facade),
+) -> list[BonusLedgerEntryResponse]:
+    """Read ledger history for an internal caller."""
+
+    results = facade.list_ledger(ListBonusLedgerQuery(parent_id=parent_id))
+    return [BonusLedgerEntryResponse(**asdict(item)) for item in results]
 
 
 @router.post("/accruals", response_model=AccrualResponse)

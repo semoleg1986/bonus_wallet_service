@@ -63,6 +63,10 @@ class InMemoryBonusLedgerRepository:
     ) -> BonusLedgerEntry | None:
         return self._by_reference.get((parent_id, operation, reference_id))
 
+    def list_by_parent(self, *, parent_id: str) -> list[BonusLedgerEntry]:
+        entries = [entry for entry in self._entries if entry.parent_id == parent_id]
+        return sorted(entries, key=lambda item: item.created_at, reverse=True)
+
 
 class InMemoryBonusRuleRepository:
     """Simple dict-backed bonus rules repository."""

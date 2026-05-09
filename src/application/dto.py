@@ -132,3 +132,24 @@ class BonusRuleView:
     threshold: int
     points: int
     is_active: bool
+
+
+@dataclass(frozen=True, slots=True)
+class ListBonusLedgerQuery:
+    """Read ledger history for a parent."""
+
+    parent_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class BonusLedgerEntryView:
+    """Serializable ledger snapshot."""
+
+    entry_id: str
+    parent_id: str
+    operation: str
+    delta: int
+    balance_after: int
+    reason_code: str
+    reference_id: str | None
+    idempotency_key: str | None
