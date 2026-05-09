@@ -9,7 +9,10 @@ from fastapi import APIRouter, Depends
 from src.application.dto import (
     AccrueBonusCommand,
     CommitRedeemCommand,
+    CreateBonusRuleCommand,
+    DeactivateBonusRuleCommand,
     GetBalanceQuery,
+    ListBonusRulesQuery,
     RedeemQuoteQuery,
     RevertRedeemCommand,
 )
@@ -18,6 +21,8 @@ from src.interface.http.v1.internal.schemas import (
     AccrualRequest,
     AccrualResponse,
     BalanceResponse,
+    BonusRuleCreateRequest,
+    BonusRuleResponse,
     RedeemCommitRequest,
     RedeemCommitResponse,
     RedeemQuoteRequest,
@@ -116,3 +121,45 @@ def revert_redeem(
         )
     )
     return RedeemRevertResponse(**asdict(result))
+
+
+@router.get("/rules", response_model=list[BonusRuleResponse])
+def list_rules(
+    active_only: bool = False,
+    _=Depends(require_service_token),
+    facade=Depends(get_facade),
+) -> list[BonusRuleResponse]:
+    """List configured accrual rules."""
+
+    results = facade.list_rules(ListBonusRulesQuery(active_only=active_only))
+    return [BonusRuleResponse(**asdict(item)) for item in results]
+
+
+@router.post("/rules", response_model=BonusRuleResponse)
+def create_rule(
+    payload: BonusRuleCreateRequest,
+    _=Depends(require_service_token),
+    facade=Depends(get_facade),
+) -> BonusRuleResponse:
+    """Create a new accrual rule."""
+
+    result = facade.create_rule(
+        CreateBonusRuleCommand(
+            trigger_type=payload.trigger_type,
+            threshold=payload.threshold,
+            points=payload.points,
+        )
+    )
+    return BonusRuleResponse(**asdict(result))
+
+
+@router.post("/rules/{rule_id}/deactivate", response_model=BonusRuleResponse)
+def deactivate_rule(
+    rule_id: str,
+    _=Depends(require_service_token),
+    facade=Depends(get_facade),
+) -> BonusRuleResponse:
+    """Deactivate an existing accrual rule."""
+
+    result = facade.deactivate_rule(DeactivateBonusRuleCommand(rule_id=rule_id))
+    return BonusRuleResponse(**asdict(result))

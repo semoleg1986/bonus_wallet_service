@@ -10,6 +10,9 @@ from src.infrastructure.db.sqlalchemy.account_repository_sqlalchemy import (
 from src.infrastructure.db.sqlalchemy.ledger_repository_sqlalchemy import (
     SqlAlchemyBonusLedgerRepository,
 )
+from src.infrastructure.db.sqlalchemy.rule_repository_sqlalchemy import (
+    SqlAlchemyBonusRuleRepository,
+)
 from src.infrastructure.db.sqlalchemy.session_context import (
     reset_current_session,
     set_current_session,
@@ -31,6 +34,7 @@ class SqlAlchemyUnitOfWork:
         self._token = set_current_session(self._session)
         self.accounts = SqlAlchemyBonusAccountRepository(self._session)
         self.ledger = SqlAlchemyBonusLedgerRepository(self._session)
+        self.rules = SqlAlchemyBonusRuleRepository(self._session)
         return self
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:

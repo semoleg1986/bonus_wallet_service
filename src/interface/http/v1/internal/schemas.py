@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from src.domain.wallet.rule import TriggerType
+
 
 class BalanceResponse(BaseModel):
     parent_id: str
@@ -75,3 +77,17 @@ class RedeemRevertResponse(BaseModel):
     payment_intent_id: str
     idempotency_key: str | None = None
     operation: str
+
+
+class BonusRuleCreateRequest(BaseModel):
+    trigger_type: TriggerType
+    threshold: int = Field(gt=0)
+    points: int = Field(gt=0)
+
+
+class BonusRuleResponse(BaseModel):
+    rule_id: str
+    trigger_type: str
+    threshold: int = Field(gt=0)
+    points: int = Field(gt=0)
+    is_active: bool

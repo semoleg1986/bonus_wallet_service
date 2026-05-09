@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from src.domain.wallet.entity import BonusAccount, BonusLedgerEntry, LedgerOperation
+from src.domain.wallet.rule import BonusRule
 from src.infrastructure.inmemory.repositories import (
     InMemoryBonusAccountRepository,
     InMemoryBonusLedgerRepository,
+    InMemoryBonusRuleRepository,
 )
 
 
@@ -18,6 +20,7 @@ class InMemoryUnitOfWork:
         entries: list[BonusLedgerEntry],
         by_idempotency: dict[tuple[str, LedgerOperation, str], BonusLedgerEntry],
         by_reference: dict[tuple[str, LedgerOperation, str], BonusLedgerEntry],
+        rules: dict[str, BonusRule],
     ) -> None:
         self.accounts = InMemoryBonusAccountRepository(accounts)
         self.ledger = InMemoryBonusLedgerRepository(
@@ -25,6 +28,7 @@ class InMemoryUnitOfWork:
             by_idempotency=by_idempotency,
             by_reference=by_reference,
         )
+        self.rules = InMemoryBonusRuleRepository(rules)
 
     def __enter__(self) -> "InMemoryUnitOfWork":
         return self

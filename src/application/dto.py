@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from src.domain.wallet.rule import TriggerType
+
 
 @dataclass(frozen=True, slots=True)
 class GetBalanceQuery:
@@ -96,3 +98,37 @@ class RedemptionView:
     payment_intent_id: str
     idempotency_key: str | None
     operation: str
+
+
+@dataclass(frozen=True, slots=True)
+class CreateBonusRuleCommand:
+    """Create a new accrual rule."""
+
+    trigger_type: TriggerType
+    threshold: int
+    points: int
+
+
+@dataclass(frozen=True, slots=True)
+class DeactivateBonusRuleCommand:
+    """Deactivate an existing accrual rule."""
+
+    rule_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class ListBonusRulesQuery:
+    """Read configured bonus rules."""
+
+    active_only: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class BonusRuleView:
+    """Serializable rule snapshot."""
+
+    rule_id: str
+    trigger_type: str
+    threshold: int
+    points: int
+    is_active: bool

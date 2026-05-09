@@ -9,8 +9,12 @@ from src.application.dto import (
     AccrualView,
     AccrueBonusCommand,
     BalanceView,
+    BonusRuleView,
     CommitRedeemCommand,
+    CreateBonusRuleCommand,
+    DeactivateBonusRuleCommand,
     GetBalanceQuery,
+    ListBonusRulesQuery,
     RedeemQuoteQuery,
     RedeemQuoteView,
     RedemptionView,
@@ -19,6 +23,7 @@ from src.application.dto import (
 from src.application.ports.unit_of_work import UnitOfWorkFactory
 from src.domain.errors import InvariantViolationError, NotFoundError, ValidationError
 from src.domain.wallet.entity import BonusAccount, BonusLedgerEntry, LedgerOperation
+from src.domain.wallet.rule import BonusRule
 
 
 @dataclass(slots=True)
@@ -84,6 +89,39 @@ class BonusWalletFacade:
             allowed_amount=allowed,
             payment_intent_id=query.payment_intent_id,
         )
+
+    def create_rule(self, command: CreateBonusRuleCommand) -> BonusRuleView:
+        """Create a new configurable bonus accrual rule."""
+
+        rule = BonusRule.create(
+            rule_id=self._new_id(),
+            trigger_type=command.trigger_type,
+            threshold=command.threshold,
+            points=command.points,
+        )
+        with self.uow_factory() as uow:
+            uow.rules.save(rule)
+            uow.commit()
+        return self._to_rule_view(rule)
+
+    def deactivate_rule(self, command: DeactivateBonusRuleCommand) -> BonusRuleView:
+        """Deactivate an existing rule."""
+
+        with self.uow_factory() as uow:
+            rule = uow.rules.get(command.rule_id)
+            if rule is None:
+                raise NotFoundError("BonusRule не найден.")
+            rule.deactivate()
+            uow.rules.save(rule)
+            uow.commit()
+        return self._to_rule_view(rule)
+
+    def list_rules(self, query: ListBonusRulesQuery) -> list[BonusRuleView]:
+        """Return configured rules."""
+
+        with self.uow_factory() as uow:
+            rules = uow.rules.list(active_only=query.active_only)
+        return [self._to_rule_view(rule) for rule in rules]
 
     def commit_redeem(self, command: CommitRedeemCommand) -> RedemptionView:
         """Consume balance for a payment in a replay-safe way."""
@@ -211,6 +249,16 @@ class BonusWalletFacade:
             payment_intent_id=entry.reference_id or "",
             idempotency_key=entry.idempotency_key,
             operation=entry.operation.value,
+        )
+
+    @staticmethod
+    def _to_rule_view(rule: BonusRule) -> BonusRuleView:
+        return BonusRuleView(
+            rule_id=rule.rule_id,
+            trigger_type=rule.trigger_type.value,
+            threshold=rule.threshold,
+            points=rule.points,
+            is_active=rule.is_active,
         )
 
     @staticmethod

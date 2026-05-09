@@ -74,8 +74,33 @@ def upgrade() -> None:
         unique=False,
     )
 
+    op.create_table(
+        "bonus_rules",
+        sa.Column("rule_id", sa.String(length=64), primary_key=True),
+        sa.Column("trigger_type", sa.String(length=64), nullable=False),
+        sa.Column("threshold", sa.Integer(), nullable=False),
+        sa.Column("points", sa.Integer(), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+    )
+    op.create_index(
+        "ix_bonus_rules_trigger_type",
+        "bonus_rules",
+        ["trigger_type"],
+        unique=False,
+    )
+    op.create_index(
+        "ix_bonus_rules_is_active",
+        "bonus_rules",
+        ["is_active"],
+        unique=False,
+    )
+
 
 def downgrade() -> None:
+    op.drop_index("ix_bonus_rules_is_active", table_name="bonus_rules")
+    op.drop_index("ix_bonus_rules_trigger_type", table_name="bonus_rules")
+    op.drop_table("bonus_rules")
     op.drop_index("ix_bonus_ledger_idempotency_key", table_name="bonus_ledger")
     op.drop_index("ix_bonus_ledger_reference_id", table_name="bonus_ledger")
     op.drop_index("ix_bonus_ledger_operation", table_name="bonus_ledger")

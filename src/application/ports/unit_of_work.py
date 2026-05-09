@@ -7,6 +7,7 @@ from typing import Callable, Protocol, Self
 from src.application.ports.repositories import (
     BonusAccountRepositoryPort,
     BonusLedgerRepositoryPort,
+    BonusRuleRepositoryPort,
 )
 
 
@@ -15,6 +16,7 @@ class UnitOfWork(Protocol):
 
     accounts: BonusAccountRepositoryPort
     ledger: BonusLedgerRepositoryPort
+    rules: BonusRuleRepositoryPort
 
     def __enter__(self) -> Self:
         """Enter transactional scope."""

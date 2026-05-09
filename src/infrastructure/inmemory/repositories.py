@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from src.domain.wallet.entity import BonusAccount, BonusLedgerEntry, LedgerOperation
+from src.domain.wallet.rule import BonusRule
 
 
 class InMemoryBonusAccountRepository:
@@ -61,3 +62,23 @@ class InMemoryBonusLedgerRepository:
         reference_id: str,
     ) -> BonusLedgerEntry | None:
         return self._by_reference.get((parent_id, operation, reference_id))
+
+
+class InMemoryBonusRuleRepository:
+    """Simple dict-backed bonus rules repository."""
+
+    def __init__(self, storage: dict[str, BonusRule]) -> None:
+        self._storage = storage
+
+    def get(self, rule_id: str) -> BonusRule | None:
+        rule = self._storage.get(rule_id)
+        return replace(rule) if rule is not None else None
+
+    def save(self, rule: BonusRule) -> None:
+        self._storage[rule.rule_id] = replace(rule)
+
+    def list(self, *, active_only: bool) -> list[BonusRule]:
+        rules = [replace(rule) for rule in self._storage.values()]
+        if active_only:
+            rules = [rule for rule in rules if rule.is_active]
+        return sorted(rules, key=lambda item: item.rule_id)

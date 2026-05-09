@@ -116,3 +116,40 @@ def test_commit_redeem_fails_when_balance_is_insufficient() -> None:
 
     assert response.status_code == 409
     assert response.json()["detail"] == "Недостаточно бонусного баланса."
+
+
+def test_rule_lifecycle_create_list_and_deactivate() -> None:
+    client = _client()
+    headers = {"X-Service-Token": SERVICE_TOKEN}
+
+    create_response = client.post(
+        "/internal/v1/bonus/rules",
+        headers=headers,
+        json={
+            "trigger_type": "lesson_completed",
+            "threshold": 3,
+            "points": 25,
+        },
+    )
+    assert create_response.status_code == 200
+    rule_id = create_response.json()["rule_id"]
+    assert create_response.json()["is_active"] is True
+
+    list_response = client.get("/internal/v1/bonus/rules", headers=headers)
+    assert list_response.status_code == 200
+    assert len(list_response.json()) == 1
+    assert list_response.json()[0]["rule_id"] == rule_id
+
+    deactivate_response = client.post(
+        f"/internal/v1/bonus/rules/{rule_id}/deactivate",
+        headers=headers,
+    )
+    assert deactivate_response.status_code == 200
+    assert deactivate_response.json()["is_active"] is False
+
+    active_list_response = client.get(
+        "/internal/v1/bonus/rules?active_only=true",
+        headers=headers,
+    )
+    assert active_list_response.status_code == 200
+    assert active_list_response.json() == []

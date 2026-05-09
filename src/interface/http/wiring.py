@@ -6,6 +6,7 @@ from functools import lru_cache
 
 from src.application.services.facade import BonusWalletFacade
 from src.domain.wallet.entity import BonusAccount, BonusLedgerEntry, LedgerOperation
+from src.domain.wallet.rule import BonusRule
 from src.infrastructure.config.settings import Settings
 from src.infrastructure.db.sqlalchemy.base import Base
 from src.infrastructure.db.sqlalchemy.session import build_engine, build_session_factory
@@ -16,6 +17,7 @@ _ACCOUNTS: dict[str, BonusAccount] = {}
 _ENTRIES: list[BonusLedgerEntry] = []
 _ENTRIES_BY_IDEMPOTENCY: dict[tuple[str, LedgerOperation, str], BonusLedgerEntry] = {}
 _ENTRIES_BY_REFERENCE: dict[tuple[str, LedgerOperation, str], BonusLedgerEntry] = {}
+_RULES: dict[str, BonusRule] = {}
 
 
 @lru_cache(maxsize=1)
@@ -58,6 +60,7 @@ def get_facade() -> BonusWalletFacade:
             entries=_ENTRIES,
             by_idempotency=_ENTRIES_BY_IDEMPOTENCY,
             by_reference=_ENTRIES_BY_REFERENCE,
+            rules=_RULES,
         )
     )
 
@@ -69,6 +72,7 @@ def reset_runtime_state() -> None:
     _ENTRIES.clear()
     _ENTRIES_BY_IDEMPOTENCY.clear()
     _ENTRIES_BY_REFERENCE.clear()
+    _RULES.clear()
     get_settings.cache_clear()
     get_engine.cache_clear()
     get_session_factory.cache_clear()

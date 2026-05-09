@@ -57,3 +57,19 @@ class BonusLedgerEntryModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
+
+
+class BonusRuleModel(Base):
+    """Stored configurable bonus accrual rule."""
+
+    __tablename__ = "bonus_rules"
+
+    rule_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    trigger_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    threshold: Mapped[int] = mapped_column(Integer, nullable=False)
+    points: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_active: Mapped[bool] = mapped_column(nullable=False, default=True, index=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
