@@ -1,0 +1,17 @@
+@startuml
+!theme plain
+
+rectangle auth_service
+rectangle users_service
+rectangle course_service
+rectangle payments_service
+rectangle "attribution-service" as attribution_service
+rectangle bonus_wallet_service
+
+course_service --> bonus_wallet_service : accrual triggers
+payments_service --> bonus_wallet_service : quote / commit / revert
+users_service --> bonus_wallet_service : parent identity context
+bonus_wallet_service --> auth_service : JWT trust
+payments_service --> attribution_service : promo discount
+
+@enduml

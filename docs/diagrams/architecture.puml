@@ -1,0 +1,15 @@
+@startuml
+!theme plain
+
+package "bonus_wallet_service" {
+  package domain
+  package application
+  package infrastructure
+  package interface
+}
+
+domain <- application
+application <- infrastructure
+application <- interface
+
+@enduml

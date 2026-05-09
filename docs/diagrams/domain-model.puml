@@ -1,0 +1,29 @@
+@startuml
+!theme plain
+
+class BonusAccount {
+  parent_global_id
+  balance
+  version
+}
+
+class BonusLedgerEntry {
+  direction
+  amount
+  reason
+  source_event_id
+  payment_id
+  idempotency_key
+}
+
+class BonusRule {
+  trigger_type
+  threshold
+  points
+  is_active
+}
+
+BonusAccount "1" -- "many" BonusLedgerEntry
+BonusRule ..> BonusLedgerEntry : governs accrual amount
+
+@enduml
