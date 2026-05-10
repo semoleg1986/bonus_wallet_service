@@ -45,3 +45,20 @@
 - bearer auth для parent/admin reads
 - `X-Service-Token` для internal write flows
 - contracts versioned explicitly before breaking changes
+
+## Admin / Reporting Surface
+
+### Purpose
+Дать support/admin прозрачность по бонусному контуру без вмешательства в ledger state.
+
+### First endpoints
+- account snapshot
+- ledger read
+- rules read
+- aggregate summary
+- csv export
+
+### Contract expectations
+- read endpoints не меняют state
+- ledger entries остаются append-only
+- admin/reporting filters не должны менять business semantics ledger

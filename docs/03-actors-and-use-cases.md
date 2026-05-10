@@ -9,6 +9,7 @@
 ### Admin / Support
 - просматривает ledger и правила
 - при необходимости управляет правилами начисления
+- читает account snapshot и aggregate reports
 
 ### `course_service`
 - поставляет learning milestones для accrual
@@ -46,3 +47,12 @@
 ### 5. Прочитать баланс родителя
 1. parent/admin запрашивает balance
 2. сервис возвращает актуальный balance snapshot
+
+### 6. Прочитать ledger и account snapshot для поддержки
+1. admin/support запрашивает account snapshot
+2. сервис возвращает текущий баланс и агрегированные totals
+3. при необходимости support читает ledger операций
+
+### 7. Получить aggregate reporting
+1. admin/support запрашивает summary/by-reason/csv export
+2. сервис возвращает агрегированные данные по начислениям и списаниям

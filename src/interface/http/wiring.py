@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from functools import lru_cache
 
+from src.application.ports.access_token_verifier import AccessTokenVerifier
 from src.application.services.facade import BonusWalletFacade
 from src.domain.wallet.entity import BonusAccount, BonusLedgerEntry, LedgerOperation
 from src.domain.wallet.rule import BonusRule
+from src.infrastructure.auth.jwks_access_token_verifier import JwksAccessTokenVerifier
 from src.infrastructure.config.settings import Settings
 from src.infrastructure.db.sqlalchemy.base import Base
 from src.infrastructure.db.sqlalchemy.session import build_engine, build_session_factory
@@ -65,6 +67,19 @@ def get_facade() -> BonusWalletFacade:
     )
 
 
+@lru_cache(maxsize=1)
+def get_access_token_verifier() -> AccessTokenVerifier:
+    """Return singleton access token verifier."""
+
+    settings = get_settings()
+    return JwksAccessTokenVerifier(
+        issuer=settings.auth_issuer,
+        audience=settings.auth_audience,
+        jwks_url=settings.auth_jwks_url,
+        jwks_json=settings.auth_jwks_json,
+    )
+
+
 def reset_runtime_state() -> None:
     """Reset process-local runtime state for tests."""
 
@@ -76,3 +91,4 @@ def reset_runtime_state() -> None:
     get_settings.cache_clear()
     get_engine.cache_clear()
     get_session_factory.cache_clear()
+    get_access_token_verifier.cache_clear()

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 from src.domain.wallet.rule import TriggerType
@@ -91,6 +93,7 @@ class BonusRuleResponse(BaseModel):
     threshold: int = Field(gt=0)
     points: int = Field(gt=0)
     is_active: bool
+    updated_at: datetime
 
 
 class BonusLedgerEntryResponse(BaseModel):
@@ -102,3 +105,4 @@ class BonusLedgerEntryResponse(BaseModel):
     reason_code: str
     reference_id: str | None = None
     idempotency_key: str | None = None
+    created_at: datetime

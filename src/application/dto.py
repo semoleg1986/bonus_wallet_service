@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 
 from src.domain.wallet.rule import TriggerType
 
@@ -132,13 +133,20 @@ class BonusRuleView:
     threshold: int
     points: int
     is_active: bool
+    updated_at: datetime
 
 
 @dataclass(frozen=True, slots=True)
 class ListBonusLedgerQuery:
-    """Read ledger history for a parent."""
+    """Read ledger history with optional filters."""
 
-    parent_id: str
+    parent_id: str | None = None
+    reason_code: str | None = None
+    operation: str | None = None
+    date_from: datetime | None = None
+    date_to: datetime | None = None
+    limit: int = 100
+    offset: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,3 +161,61 @@ class BonusLedgerEntryView:
     reason_code: str
     reference_id: str | None
     idempotency_key: str | None
+    created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class AdminAccountView:
+    """Admin-facing wallet snapshot for a parent."""
+
+    parent_id: str
+    balance: int
+    last_activity_at: datetime | None
+    accruals_total: int
+    redeemed_total: int
+    reverted_total: int
+    entries_count: int
+    points_unit: str = "bonus_points"
+
+
+@dataclass(frozen=True, slots=True)
+class BonusReasonBreakdownItemView:
+    """Aggregated totals for one reason code."""
+
+    reason_code: str
+    entries_count: int
+    total_delta: int
+    total_accrued: int
+    total_redeemed: int
+    total_reverted: int
+
+
+@dataclass(frozen=True, slots=True)
+class BonusSummaryReportView:
+    """High-level reporting snapshot."""
+
+    wallets_with_positive_balance: int
+    total_balance_outstanding: int
+    total_accrued: int
+    total_redeemed: int
+    total_reverted: int
+    period_from: datetime | None
+    period_to: datetime | None
+
+
+@dataclass(frozen=True, slots=True)
+class GetBonusSummaryReportQuery:
+    """Read platform-wide bonus summary."""
+
+    date_from: datetime | None = None
+    date_to: datetime | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class GetBonusReasonBreakdownQuery:
+    """Read reporting breakdown grouped by reason."""
+
+    date_from: datetime | None = None
+    date_to: datetime | None = None
+    limit: int = 100
+    offset: int = 0

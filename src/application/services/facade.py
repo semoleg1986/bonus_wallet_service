@@ -8,13 +8,18 @@ from dataclasses import dataclass
 from src.application.dto import (
     AccrualView,
     AccrueBonusCommand,
+    AdminAccountView,
     BalanceView,
     BonusLedgerEntryView,
+    BonusReasonBreakdownItemView,
     BonusRuleView,
+    BonusSummaryReportView,
     CommitRedeemCommand,
     CreateBonusRuleCommand,
     DeactivateBonusRuleCommand,
     GetBalanceQuery,
+    GetBonusReasonBreakdownQuery,
+    GetBonusSummaryReportQuery,
     ListBonusLedgerQuery,
     ListBonusRulesQuery,
     RedeemQuoteQuery,
@@ -128,9 +133,72 @@ class BonusWalletFacade:
     def list_ledger(self, query: ListBonusLedgerQuery) -> list[BonusLedgerEntryView]:
         """Return ledger history for a parent."""
 
+        if query.parent_id is not None and not query.parent_id.strip():
+            raise ValidationError("parent_id не должен быть пустым.")
         with self.uow_factory() as uow:
-            entries = uow.ledger.list_by_parent(parent_id=query.parent_id)
+            entries = uow.ledger.list_filtered(
+                parent_id=query.parent_id,
+                reason_code=query.reason_code,
+                operation=query.operation,
+                date_from=query.date_from,
+                date_to=query.date_to,
+                limit=query.limit,
+                offset=query.offset,
+            )
         return [self._to_ledger_view(entry) for entry in entries]
+
+    def get_admin_account(self, parent_id: str) -> AdminAccountView:
+        """Return admin-facing account snapshot with aggregate totals."""
+
+        if not parent_id.strip():
+            raise ValidationError("parent_id обязателен.")
+        with self.uow_factory() as uow:
+            account = uow.accounts.get(parent_id)
+            summary = uow.ledger.summarize(parent_id=parent_id)
+        return AdminAccountView(
+            parent_id=parent_id,
+            balance=account.balance if account is not None else 0,
+            last_activity_at=summary["last_activity_at"],
+            accruals_total=int(summary["accruals_total"]),
+            redeemed_total=int(summary["redeemed_total"]),
+            reverted_total=int(summary["reverted_total"]),
+            entries_count=int(summary["entries_count"]),
+        )
+
+    def get_summary_report(
+        self, query: GetBonusSummaryReportQuery
+    ) -> BonusSummaryReportView:
+        """Return platform-wide bonus summary for admins."""
+
+        with self.uow_factory() as uow:
+            summary = uow.ledger.summarize(
+                date_from=query.date_from,
+                date_to=query.date_to,
+            )
+            wallets_with_positive_balance = uow.accounts.count_positive_balances()
+            total_balance_outstanding = uow.accounts.total_balance_outstanding()
+        return BonusSummaryReportView(
+            wallets_with_positive_balance=wallets_with_positive_balance,
+            total_balance_outstanding=total_balance_outstanding,
+            total_accrued=int(summary["accruals_total"]),
+            total_redeemed=int(summary["redeemed_total"]),
+            total_reverted=int(summary["reverted_total"]),
+            period_from=query.date_from,
+            period_to=query.date_to,
+        )
+
+    def get_reason_breakdown(
+        self, query: GetBonusReasonBreakdownQuery
+    ) -> list[BonusReasonBreakdownItemView]:
+        """Return grouped admin report by reason code."""
+
+        with self.uow_factory() as uow:
+            return uow.ledger.summarize_by_reason(
+                date_from=query.date_from,
+                date_to=query.date_to,
+                limit=query.limit,
+                offset=query.offset,
+            )
 
     def commit_redeem(self, command: CommitRedeemCommand) -> RedemptionView:
         """Consume balance for a payment in a replay-safe way."""
@@ -268,6 +336,7 @@ class BonusWalletFacade:
             threshold=rule.threshold,
             points=rule.points,
             is_active=rule.is_active,
+            updated_at=rule.updated_at,
         )
 
     @staticmethod
@@ -281,6 +350,7 @@ class BonusWalletFacade:
             reason_code=entry.reason_code,
             reference_id=entry.reference_id,
             idempotency_key=entry.idempotency_key,
+            created_at=entry.created_at,
         )
 
     @staticmethod

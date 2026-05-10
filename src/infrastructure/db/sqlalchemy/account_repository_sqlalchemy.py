@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.domain.wallet.entity import BonusAccount
@@ -36,3 +37,13 @@ class SqlAlchemyBonusAccountRepository:
             return
         model.balance = account.balance
         model.updated_at = account.updated_at
+
+    def count_positive_balances(self) -> int:
+        stmt = select(func.count()).where(BonusAccountModel.balance > 0)
+        return int(self._session.execute(stmt).scalar_one() or 0)
+
+    def total_balance_outstanding(self) -> int:
+        stmt = select(func.coalesce(func.sum(BonusAccountModel.balance), 0)).where(
+            BonusAccountModel.balance > 0
+        )
+        return int(self._session.execute(stmt).scalar_one() or 0)
