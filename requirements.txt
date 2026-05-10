@@ -16,12 +16,16 @@ ast-serialize==0.3.0
     # via mypy
 black==26.3.1
     # via -r requirements.in
+cffi==2.0.0
+    # via cryptography
 cfgv==3.5.0
     # via pre-commit
 click==8.3.3
     # via
     #   black
     #   uvicorn
+cryptography==46.0.3
+    # via -r requirements.in
 distlib==0.4.0
     # via virtualenv
 fastapi==0.136.1
@@ -73,6 +77,8 @@ pre-commit==4.6.0
     # via -r requirements.in
 pycodestyle==2.14.0
     # via flake8
+pycparser==2.23
+    # via cffi
 psycopg==3.2.12
     # via
     #   -r requirements.in
