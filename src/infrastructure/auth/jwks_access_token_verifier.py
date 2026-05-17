@@ -60,12 +60,17 @@ class JwksAccessTokenVerifier:
             raise AccessDeniedError("Некорректный тип access token.")
 
         actor_id = str(claims.get("sub", "")).strip()
+        user_id = str(claims.get("user_id", "")).strip()
         roles = claims.get("roles", [])
         if not actor_id:
             raise AccessDeniedError("Access token не содержит subject.")
         if not isinstance(roles, list) or not roles:
             raise AccessDeniedError("Access token содержит некорректные roles.")
-        return {"sub": actor_id, "roles": [str(item) for item in roles]}
+        return {
+            "sub": actor_id,
+            "user_id": user_id,
+            "roles": [str(item) for item in roles],
+        }
 
     def _resolve_jwk(self, *, kid: str | None) -> dict:
         jwks = self._load_jwks()

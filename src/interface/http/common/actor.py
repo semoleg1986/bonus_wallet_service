@@ -44,7 +44,9 @@ def get_http_actor(
             detail="Некорректный access token.",
         ) from exc
 
-    actor_id = str(claims.get("sub", "")).strip()
+    actor_id = (
+        str(claims.get("user_id", "")).strip() or str(claims.get("sub", "")).strip()
+    )
     roles_value = claims.get("roles", [])
     roles = tuple(
         str(item).strip().lower() for item in roles_value if str(item).strip()

@@ -4,10 +4,7 @@ from fastapi.testclient import TestClient
 
 from src.interface.http.app import create_app
 from src.interface.http.observability import reset_metrics
-from src.interface.http.wiring import (
-    get_access_token_verifier,
-    reset_runtime_state,
-)
+from src.interface.http.wiring import get_access_token_verifier, reset_runtime_state
 
 SERVICE_TOKEN = "dev-service-token"
 
@@ -15,11 +12,19 @@ SERVICE_TOKEN = "dev-service-token"
 class _StubVerifier:
     def decode_access(self, access_token: str) -> dict[str, str | list[str]]:
         if access_token == "admin-token":
-            return {"sub": "admin-1", "roles": ["admin"]}
+            return {"sub": "account-admin-1", "user_id": "admin-1", "roles": ["admin"]}
         if access_token == "parent-token":
-            return {"sub": "parent-1", "roles": ["parent"]}
+            return {
+                "sub": "account-parent-1",
+                "user_id": "parent-1",
+                "roles": ["parent"],
+            }
         if access_token == "teacher-token":
-            return {"sub": "teacher-1", "roles": ["teacher"]}
+            return {
+                "sub": "account-teacher-1",
+                "user_id": "teacher-1",
+                "roles": ["teacher"],
+            }
         raise ValueError("invalid token")
 
 
