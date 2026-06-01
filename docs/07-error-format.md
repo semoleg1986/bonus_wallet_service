@@ -29,11 +29,15 @@ HTTP API должен использовать единый предсказуе
 - business rule violation if contract chooses semantic validation status
 
 ## Response Fields
-- `status` or `statusCode`
-- `error`
-- `message` / `detail`
+- `type`
+- `title`
+- `status`
+- `detail`
+- `instance`
 - `request_id`
 - `correlation_id`
+
+`X-Request-ID` и `X-Correlation-ID` также возвращаются в headers, когда доступны.
 
 ## Requirement
 

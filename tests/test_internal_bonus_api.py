@@ -14,10 +14,23 @@ def _client() -> TestClient:
 
 
 def test_internal_routes_require_service_token() -> None:
-    response = _client().get("/internal/v1/bonus/balance/parent-1")
+    response = _client().get(
+        "/internal/v1/bonus/balance/parent-1",
+        headers={
+            "X-Request-ID": "req-bonus-http-001",
+            "X-Correlation-ID": "corr-bonus-http-001",
+        },
+    )
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Требуется X-Service-Token."
+    assert response.headers.get("content-type") == "application/problem+json"
+    assert response.headers.get("X-Request-ID") == "req-bonus-http-001"
+    assert response.headers.get("X-Correlation-ID") == "corr-bonus-http-001"
+    assert response.json()["type"] == "https://api.example.com/problems/unauthorized"
+    assert response.json()["status"] == 401
+    assert response.json()["request_id"] == "req-bonus-http-001"
+    assert response.json()["correlation_id"] == "corr-bonus-http-001"
 
 
 def test_accrue_balance_quote_commit_and_revert_flow() -> None:
